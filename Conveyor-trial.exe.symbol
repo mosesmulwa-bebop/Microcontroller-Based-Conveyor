@@ -1,0 +1,58 @@
+< THE SYMBOL TABLE >  Conveyor-trial.exe  --  emu8086 assembler version: 4.08 
+===================================================================================================
+Name                     	Offset    	Size      	Type      	Segment   
+===================================================================================================
+STACK                    	00000     	-5        	SEGMENT   	(ITSELF)  
+DATA                     	00020     	-5        	SEGMENT   	(ITSELF)  
+MSG1                     	00000     	1         	VAR       	data      
+MSG2                     	00006     	1         	VAR       	data      
+MSG3                     	0000D     	1         	VAR       	data      
+MSG4                     	00013     	1         	VAR       	data      
+MSG5                     	0001D     	1         	VAR       	data      
+INITIAL                  	0002A     	1         	VAR       	data      
+INITIAL_Q1               	0002B     	1         	VAR       	data      
+INITIAL_Q2               	0002C     	1         	VAR       	data      
+INITIAL_Q3               	0002D     	1         	VAR       	data      
+INITIAL_Q4               	0002E     	1         	VAR       	data      
+INITIAL_T1               	0002F     	1         	VAR       	data      
+INITIAL_T2               	00030     	1         	VAR       	data      
+INITIAL_T4               	00031     	1         	VAR       	data      
+INITIAL_T5               	00032     	1         	VAR       	data      
+INITIAL_T7               	00033     	1         	VAR       	data      
+VAL9                     	00034     	1         	VAR       	data      
+VAL5                     	00035     	1         	VAR       	data      
+MOTOR_DELAY              	00036     	2         	VAR       	data      
+CODE                     	00024     	-5        	SEGMENT   	(ITSELF)  
+LCD_CUR                  	00000     	-1        	LABEL     	code      
+LCD_CMD                  	00005     	-1        	LABEL     	code      
+LCD_CHAR                 	0001B     	-1        	LABEL     	code      
+LCD_STR                  	00031     	-1        	LABEL     	code      
+@LCD_PRINTSTR_LT         	00031     	-1        	LABEL     	code      
+@LCD_PRINTSTR_EXIT       	0003D     	-1        	LABEL     	code      
+LCD_CLEAR                	0003E     	-1        	LABEL     	code      
+DELAY                    	00044     	-1        	LABEL     	code      
+@DEL_LOOP                	00046     	-1        	LABEL     	code      
+@DELAY_END               	00048     	-1        	LABEL     	code      
+MOTOR_CONV               	00049     	-1        	LABEL     	code      
+TYPEA                    	000B2     	-1        	LABEL     	code      
+TENS                     	000E5     	-1        	LABEL     	code      
+ENDLABEL                 	00110     	-1        	LABEL     	code      
+TYPEB                    	00116     	-1        	LABEL     	code      
+TENSB                    	00147     	-1        	LABEL     	code      
+ENDLABELB                	0017D     	-1        	LABEL     	code      
+TIMES                    	00183     	-1        	LABEL     	code      
+ONES                     	001A1     	-1        	LABEL     	code      
+TEENS                    	001CB     	-1        	LABEL     	code      
+ONEM                     	00205     	-1        	LABEL     	code      
+TENM                     	00246     	-1        	LABEL     	code      
+ENDLABELL                	0028B     	-1        	LABEL     	code      
+OUT_A                    	00291     	-1        	LABEL     	code      
+OUT_B                    	00294     	-1        	LABEL     	code      
+OUT_C                    	00297     	-1        	LABEL     	code      
+EMERGENCY                	0029A     	-1        	LABEL     	code      
+LOWEST                   	002BB     	-1        	LABEL     	code      
+START                    	002DC     	-1        	LABEL     	code      
+===================================================================================================
+[ 09/11/2021  --  11:45:22 ] 
+< END >
+ 

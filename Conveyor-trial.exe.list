@@ -1,0 +1,891 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+Conveyor-trial.exe -- emu8086 assembler version: 4.08  
+ 
+[ 09/11/2021  --  11:45:22 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       .model medium
+[   2]        :                                       
+[   3]        :                                       .stack
+[   4]    0100: 00 00 00 00 00 00 00 00 00 00 00 00   dw 128 dup (0)
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00                         
+[   5]        :                                       
+[   6]        :                                       
+[   7]        :                                       .data
+[   8]        :                                       
+[   9]    0200: 51 74 79 3A 20 24                     msg1                 db "Qty: $"
+[  10]    0206: 54 69 6D 65 3A 20 24                  msg2                 db "Time: $"
+[  11]    020D: 54 79 70 3A 20 24                     msg3                 db "Typ: $"
+[  12]    0213: 45 4D 45 52 47 45 4E 43 59 24         msg4                 db "EMERGENCY$"
+[  13]    021D: 4C 6F 77 65 73 74 20 46 6C 6F 6F 72   msg5                 db "Lowest Floor$"
+                24                                  
+[  14]        :                                       
+[  15]    022A: 30                                    initial                 db 048
+[  16]    022B: 30                                    initial_Q1              db 048
+[  17]    022C: 30                                    initial_Q2              db 048
+[  18]    022D: 30                                    initial_Q3              db 048
+[  19]    022E: 30                                    initial_Q4              db 048
+[  20]        :                                       
+[  21]    022F: 30                                    initial_T1            db 048
+[  22]    0230: 30                                    initial_T2            db 048
+[  23]    0231: 30                                    initial_T4            db 048
+[  24]    0232: 30                                    initial_T5            db 048
+[  25]    0233: 30                                    initial_T7            db 048
+[  26]        :                                       
+[  27]    0234: 3A                                    val9                 db 058
+[  28]    0235: 36                                    val5                 db 054
+[  29]        :                                       
+[  30]    0236: 20 03                                 Motor_Delay            dw   800
+[  31]        :                                       
+[  32]        :                                       
+[  33]        :                                       
+[  34]        :                                       .code
+[  35]        :                                       
+[  36]    0240:                                       LCD_CUR:
+[  37]    0240: 8A C4                                 MOV AL,AH
+[  38]    0242: E8 00 00                              CALL LCD_CMD
+[  39]        :                                       
+[  40]        :                                       
+[  41]        :                                       	
+[  42]    0245:                                       LCD_CMD:    ;sends commands to LCD
+[  43]        :                                       ;input: AH = command code
+[  44]        :                                       ;output: none
+[  45]        :                                       
+[  46]        :                                       ;set out data pins
+[  47]    0245: 8A C4                                 	MOV AL,AH
+[  48]    0247: E8 87 02                              	CALL OUT_A
+[  49]        :                                       ;make RS=0,R/W=0,EN=1
+[  50]    024A: B0 04                                 	MOV AL,04h
+[  51]    024C: E8 85 02                              	CALL OUT_B
+[  52]        :                                       
+[  53]        :                                       ;make RS=0,R/W=0,EN=0
+[  54]    024F: B0 00                                 	MOV AL,00h
+[  55]    0251: E8 80 02                              	CALL OUT_B
+[  56]        :                                       	
+[  57]        :                                       ;delay 1ms
+[  58]    0254: B9 64 00                              	MOV CX,100
+[  59]    0257: E8 2A 00                              	CALL DELAY
+[  60]        :                                       
+[  61]    025A: C3                                    	RET
+[  62]        :                                       
+[  63]    025B:                                       LCD_CHAR:   ;sends character to LCD
+[  64]        :                                       ;input: AH = command code
+[  65]        :                                       ;output: none
+[  66]        :                                       
+[  67]        :                                       ;set out data pins
+[  68]    025B: 8A C4                                 	MOV AL,AH
+[  69]    025D: E8 71 02                              	CALL OUT_A
+[  70]        :                                       ;make RS=1,R/W=,EN=1
+[  71]    0260: B0 06                                 	MOV AL,06h
+[  72]    0262: E8 6F 02                              	CALL OUT_B
+[  73]        :                                       
+[  74]        :                                       ;make RS=1,R/W=0,EN=0
+[  75]    0265: B0 02                                 	MOV AL,02h
+[  76]    0267: E8 6A 02                              	CALL OUT_B
+[  77]        :                                       
+[  78]        :                                       ;delay 1ms
+[  79]    026A: B9 32 00                              	MOV CX,50
+[  80]    026D: E8 14 00                              	CALL DELAY
+[  81]        :                                       		
+[  82]    0270: C3                                    	RET
+[  83]        :                                       	
+[  84]    0271:                                       LCD_STR:    ;prints a string on current cursor position
+[  85]        :                                       ;input: SI=string address, string should end with '$'
+[  86]        :                                       ;output: none
+[  87]        :                                       
+[  88]        :                                       ;save registers
+[  89]        :                                       ;read and write character
+[  90]    0271:                                       	@LCD_PRINTSTR_LT:
+[  91]    0271: AC                                    		LODSB
+[  92]    0272: 3C 24                                 		CMP AL,'$'
+[  93]    0274: 74 07                                 		JE @LCD_PRINTSTR_EXIT
+[  94]    0276: 8A E0                                 		MOV AH,AL
+[  95]    0278: E8 E0 FF                              		CALL LCD_CHAR	
+[  96]    027B: EB F4                                 	JMP @LCD_PRINTSTR_LT
+[  97]        :                                       	
+[  98]        :                                       ;return
+[  99]    027D:                                       	@LCD_PRINTSTR_EXIT:
+[ 100]    027D: C3                                    	RET            	
+[ 101]        :                                       	
+[ 102]    027E:                                       LCD_CLEAR:  ;clear display and return cursor to home position
+[ 103]    027E: B4 01                                 MOV AH,1
+[ 104]    0280: E8 C2 FF                              	CALL LCD_CMD
+[ 105]    0283: C3                                    	RET	
+[ 106]        :                                       	
+[ 107]        :                                       
+[ 108]    0284:                                       DELAY:  ;input: CX, this value controls the delay. CX=50 means 1ms
+[ 109]        :                                       ;output: none
+[ 110]    0284: E3 02                                 	JCXZ @DELAY_END
+[ 111]    0286:                                       	@DEL_LOOP:
+[ 112]    0286: E2 FE                                 	LOOP @DEL_LOOP	
+[ 113]    0288:                                       	@DELAY_END:
+[ 114]    0288: C3                                    	RET
+[ 115]        :                                       	
+[ 116]        :                                       
+[ 117]        :                                       
+[ 118]        :                                       
+[ 119]        :                                       
+[ 120]    0289:                                       Motor_Conv:
+[ 121]    0289: FB                                    STI
+[ 122]        :                                       
+[ 123]        :                                       
+[ 124]        :                                       
+[ 125]    028A: B0 03                                 MOV AL,3h      ;01
+[ 126]    028C: E8 48 02                              CALL OUT_C
+[ 127]        :                                       
+[ 128]    028F: 8B 0E 36 00                           mov cx,Motor_Delay
+[ 129]    0293: E8 EE FF                              CALL DELAY
+[ 130]        :                                       
+[ 131]    0296: B0 02                                 MOV AL,2h       ;1
+[ 132]    0298: E8 3C 02                              CALL OUT_C
+[ 133]        :                                       
+[ 134]    029B: 8B 0E 36 00                           mov cx,Motor_Delay
+[ 135]    029F: E8 E2 FF                              CALL DELAY
+[ 136]        :                                       
+[ 137]        :                                       ; INT 03H
+[ 138]        :                                       
+[ 139]    02A2: B0 06                                 MOV AL,06h     ;12
+[ 140]    02A4: E8 30 02                              CALL OUT_C
+[ 141]        :                                       
+[ 142]    02A7: 8B 0E 36 00                           mov cx,Motor_Delay
+[ 143]    02AB: E8 D6 FF                              CALL DELAY
+[ 144]        :                                       
+[ 145]    02AE: B0 04                                 MOV AL,4h   ;2
+[ 146]    02B0: E8 24 02                              CALL OUT_C
+[ 147]        :                                       
+[ 148]    02B3: 8B 0E 36 00                           mov cx,Motor_Delay
+[ 149]    02B7: E8 CA FF                              CALL DELAY
+[ 150]        :                                       
+[ 151]    02BA: B0 0C                                 MOV AL,0Ch     ;23
+[ 152]    02BC: E8 18 02                              CALL OUT_C
+[ 153]        :                                       
+[ 154]    02BF: 8B 0E 36 00                           mov cx,Motor_Delay
+[ 155]    02C3: E8 BE FF                              CALL DELAY
+[ 156]        :                                       
+[ 157]    02C6: B0 08                                 MOV AL,8h        ;3
+[ 158]    02C8: E8 0C 02                              CALL OUT_C
+[ 159]        :                                       
+[ 160]    02CB: 8B 0E 36 00                           mov cx,Motor_Delay
+[ 161]    02CF: E8 B2 FF                              CALL DELAY
+[ 162]        :                                       
+[ 163]    02D2: B0 09                                 MOV AL,9h         ;30
+[ 164]    02D4: E8 00 02                              CALL OUT_C
+[ 165]        :                                       
+[ 166]    02D7: 8B 0E 36 00                           mov cx,Motor_Delay
+[ 167]    02DB: E8 A6 FF                              CALL DELAY
+[ 168]        :                                       
+[ 169]    02DE: B0 01                                 MOV AL,1h          ;0
+[ 170]    02E0: E8 F4 01                              CALL OUT_C
+[ 171]        :                                       
+[ 172]    02E3: 8B 0E 36 00                           mov cx,Motor_Delay
+[ 173]    02E7: E8 9A FF                              CALL DELAY
+[ 174]        :                                       
+[ 175]    02EA: B0 03                                 MOV AL,3h          ;01
+[ 176]    02EC: E8 E8 01                              CALL OUT_C
+[ 177]        :                                       
+[ 178]        :                                       
+[ 179]    02EF: EB 98                                 jmp Motor_Conv
+[ 180]        :                                       ;
+[ 181]        :                                       ;            mov al,20H             ;EOI OCW 2
+[ 182]        :                                       ;            OUT 18H,AL
+[ 183]        :                                       ;
+[ 184]        :                                       
+[ 185]    02F1: CF                                    iret
+[ 186]        :                                       
+[ 187]        :                                       
+[ 188]        :                                       
+[ 189]    02F2:                                       TypeA:
+[ 190]    02F2: 53                                    PUSH BX
+[ 191]        :                                       
+[ 192]    02F3: FE 06 2B 00                           inc initial_Q1
+[ 193]        :                                       
+[ 194]    02F7: 8A 1E 34 00                           mov bl,val9
+[ 195]    02FB: 3A 1E 2B 00                           cmp bl,initial_Q1
+[ 196]    02FF: 74 24                                 jz tens
+[ 197]        :                                       
+[ 198]        :                                       ;Set LCD Cursor for Typ value
+[ 199]    0301: B4 84                                 mov ah,84h
+[ 200]    0303: E8 3A FF                              call LCD_CUR
+[ 201]        :                                       
+[ 202]        :                                       ;Display Character on LCD
+[ 203]    0306: B4 41                                 mov ah,'A'
+[ 204]    0308: E8 50 FF                              call LCD_CHAR
+[ 205]        :                                       
+[ 206]        :                                       ;Set LCD Cursor for Qty value 1
+[ 207]    030B: B4 8F                                 mov ah,8Fh
+[ 208]    030D: E8 30 FF                              call LCD_CUR
+[ 209]        :                                       
+[ 210]        :                                       ;Display Character on LCD
+[ 211]    0310: 8A 26 2B 00                           mov ah,initial_Q1
+[ 212]    0314: E8 44 FF                              call LCD_CHAR
+[ 213]        :                                       
+[ 214]        :                                       ;Set LCD Cursor for Qty value 2
+[ 215]    0317: B4 8E                                 mov ah,8Eh
+[ 216]    0319: E8 24 FF                              call LCD_CUR
+[ 217]        :                                       
+[ 218]        :                                       ;Display Character on LCD
+[ 219]    031C: 8A 26 2C 00                           mov ah,initial_Q2
+[ 220]    0320: E8 38 FF                              call LCD_CHAR
+[ 221]        :                                       
+[ 222]        :                                       
+[ 223]        :                                       
+[ 224]        :                                       
+[ 225]        :                                       
+[ 226]    0323: EB 2B                                 jmp endlabel
+[ 227]        :                                       
+[ 228]    0325:                                       tens:
+[ 229]    0325: C6 06 2B 00 30                        MOV INITIAL_Q1,048
+[ 230]    032A: FE 06 2C 00                           INC initial_Q2
+[ 231]        :                                       
+[ 232]        :                                       ;Set LCD Cursor for Typ value
+[ 233]    032E: B4 84                                 mov ah,84h
+[ 234]    0330: E8 0D FF                              call LCD_CUR
+[ 235]        :                                       
+[ 236]        :                                       ;Display Character on LCD
+[ 237]    0333: B4 41                                 mov ah,'A'
+[ 238]    0335: E8 23 FF                              call LCD_CHAR
+[ 239]        :                                       
+[ 240]        :                                       ;Set LCD Cursor for Qty value 1
+[ 241]    0338: B4 8F                                 mov ah,8Fh
+[ 242]    033A: E8 03 FF                              call LCD_CUR
+[ 243]        :                                       
+[ 244]        :                                       ;Display Character on LCD
+[ 245]    033D: 8A 26 2B 00                           mov ah,initial_Q1
+[ 246]    0341: E8 17 FF                              call LCD_CHAR
+[ 247]        :                                       
+[ 248]        :                                       
+[ 249]        :                                       ;Set LCD Cursor for Qty value 2
+[ 250]    0344: B4 8E                                 mov ah,8Eh
+[ 251]    0346: E8 F7 FE                              call LCD_CUR
+[ 252]        :                                       
+[ 253]        :                                       ;Display Character on LCD
+[ 254]    0349: 8A 26 2C 00                           mov ah,initial_Q2
+[ 255]    034D: E8 0B FF                              call LCD_CHAR
+[ 256]        :                                       
+[ 257]        :                                       
+[ 258]    0350:                                       endlabel:
+[ 259]    0350: 5B                                    POP BX
+[ 260]        :                                       
+[ 261]    0351: B0 20                                 mov al,20H             ;EOI
+[ 262]    0353: E6 18                                 OUT 18H,AL
+[ 263]        :                                       
+[ 264]        :                                       
+[ 265]    0355: CF                                    iret
+[ 266]        :                                       
+[ 267]        :                                       
+[ 268]    0356:                                       TypeB:
+[ 269]    0356: 53                                    PUSH BX
+[ 270]        :                                       
+[ 271]        :                                       
+[ 272]        :                                       
+[ 273]    0357: B3 30                                 mov bl,048
+[ 274]    0359: 3A 1E 2B 00                           cmp bl,initial_Q1
+[ 275]    035D: 74 28                                 jz tensB
+[ 276]        :                                       
+[ 277]    035F: FE 0E 2B 00                           dec initial_Q1
+[ 278]        :                                       ;Set LCD Cursor for Typ value
+[ 279]    0363: B4 84                                 mov ah,84h
+[ 280]    0365: E8 D8 FE                              call LCD_CUR
+[ 281]        :                                       
+[ 282]        :                                       ;Display Character on LCD
+[ 283]    0368: B4 42                                 mov ah,'B'
+[ 284]    036A: E8 EE FE                              call LCD_CHAR
+[ 285]        :                                       
+[ 286]        :                                       ;Set LCD Cursor for Qty value 1
+[ 287]    036D: B4 8F                                 mov ah,8Fh
+[ 288]    036F: E8 CE FE                              call LCD_CUR
+[ 289]        :                                       
+[ 290]        :                                       ;Display Character on LCD
+[ 291]    0372: 8A 26 2B 00                           mov ah,initial_Q1
+[ 292]    0376: E8 E2 FE                              call LCD_CHAR
+[ 293]        :                                       
+[ 294]        :                                       ;Set LCD Cursor for Qty value 2
+[ 295]    0379: B4 8E                                 mov ah,8Eh
+[ 296]    037B: E8 C2 FE                              call LCD_CUR
+[ 297]        :                                       
+[ 298]        :                                       ;Display Character on LCD
+[ 299]    037E: 8A 26 2C 00                           mov ah,initial_Q2
+[ 300]    0382: E8 D6 FE                              call LCD_CHAR
+[ 301]        :                                       
+[ 302]        :                                       
+[ 303]    0385: EB 36                                 jmp endlabelB
+[ 304]        :                                       
+[ 305]    0387:                                       tensB:
+[ 306]        :                                       
+[ 307]    0387: B3 30                                 mov bl,048
+[ 308]    0389: 3A 1E 2C 00                           cmp bl,initial_Q2
+[ 309]    038D: 75 03 E9 69 01                        jz LOWEST
+[ 310]        :                                       
+[ 311]        :                                       
+[ 312]    0392: C6 06 2B 00 39                        MOV INITIAL_Q1,057
+[ 313]    0397: FE 0E 2C 00                           DEC initial_Q2
+[ 314]        :                                       
+[ 315]        :                                       ;Set LCD Cursor for Typ value
+[ 316]    039B: B4 84                                 mov ah,84h
+[ 317]    039D: E8 A0 FE                              call LCD_CUR
+[ 318]        :                                       
+[ 319]        :                                       ;Display Character on LCD
+[ 320]    03A0: B4 50                                 mov ah,'P'
+[ 321]    03A2: E8 B6 FE                              call LCD_CHAR
+[ 322]        :                                       
+[ 323]        :                                       ;Set LCD Cursor for Qty value 1
+[ 324]    03A5: B4 8F                                 mov ah,8Fh
+[ 325]    03A7: E8 96 FE                              call LCD_CUR
+[ 326]        :                                       
+[ 327]        :                                       ;Display Character on LCD
+[ 328]    03AA: 8A 26 2B 00                           mov ah,initial_Q1
+[ 329]    03AE: E8 AA FE                              call LCD_CHAR
+[ 330]        :                                       
+[ 331]        :                                       
+[ 332]        :                                       ;Set LCD Cursor for Qty value 2
+[ 333]    03B1: B4 8E                                 mov ah,8Eh
+[ 334]    03B3: E8 8A FE                              call LCD_CUR
+[ 335]        :                                       
+[ 336]        :                                       ;Display Character on LCD
+[ 337]    03B6: 8A 26 2C 00                           mov ah,initial_Q2
+[ 338]    03BA: E8 9E FE                              call LCD_CHAR
+[ 339]        :                                       
+[ 340]    03BD:                                       endlabelB:
+[ 341]        :                                       
+[ 342]        :                                       
+[ 343]    03BD: 5B                                    POP BX
+[ 344]        :                                       
+[ 345]    03BE: B0 20                                 mov al,20H             ;EOI
+[ 346]    03C0: E6 18                                 OUT 18H,AL
+[ 347]        :                                       
+[ 348]        :                                       
+[ 349]    03C2: CF                                    iret
+[ 350]        :                                       
+[ 351]        :                                       
+[ 352]        :                                       
+[ 353]    03C3:                                       TimeS:
+[ 354]    03C3: 53                                    push bx
+[ 355]        :                                       ;push ax
+[ 356]        :                                       
+[ 357]        :                                       ;Set LCD Cursor for value time 7
+[ 358]    03C4: B4 CC                                 mov ah,0cCh
+[ 359]    03C6: E8 77 FE                              call LCD_CUR
+[ 360]        :                                       
+[ 361]        :                                       ;Display Character on LCD
+[ 362]    03C9: 8A 26 33 00                           mov ah,initial_T7
+[ 363]    03CD: E8 8B FE                              call LCD_CHAR
+[ 364]        :                                       
+[ 365]        :                                       ;test if the microsecond bit is 9
+[ 366]    03D0: FE 06 33 00                           inc initial_T7
+[ 367]    03D4: 8A 1E 34 00                           mov bl, val9
+[ 368]    03D8: 3A 1E 33 00                           cmp bl, initial_T7
+[ 369]        :                                       
+[ 370]    03DC: 74 03                                 jz oneS
+[ 371]        :                                       
+[ 372]    03DE: E9 EA 00                              jmp endlabell
+[ 373]        :                                       
+[ 374]    03E1:                                       oneS:
+[ 375]    03E1: C6 06 33 00 30                        mov initial_T7, 048
+[ 376]    03E6: FE 06 32 00                           inc initial_T5
+[ 377]        :                                       
+[ 378]        :                                       ;Set LCD Cursor for value time 7
+[ 379]    03EA: B4 CC                                 mov ah,0cCh
+[ 380]    03EC: E8 51 FE                              call LCD_CUR
+[ 381]        :                                       
+[ 382]        :                                       ;Display Character on LCD
+[ 383]    03EF: 8A 26 33 00                           mov ah,initial_T7
+[ 384]    03F3: E8 65 FE                              call LCD_CHAR
+[ 385]        :                                       ;Set LCD cursoor for value time 5
+[ 386]    03F6: B4 CA                                 mov ah, 0CAh
+[ 387]    03F8: E8 45 FE                              call LCD_CUR
+[ 388]        :                                       ;Display Charaacter on LCD
+[ 389]    03FB: 8A 26 32 00                           mov ah, initial_T5
+[ 390]    03FF: E8 59 FE                              call LCD_CHAR
+[ 391]        :                                       
+[ 392]    0402: 3A 1E 32 00                           cmp bl, initial_T5
+[ 393]    0406: 74 03                                 jz teenS
+[ 394]        :                                       
+[ 395]    0408: E9 C0 00                              jmp endlabell
+[ 396]        :                                       
+[ 397]    040B:                                       teenS:
+[ 398]    040B: C6 06 32 00 30                        mov initial_T5, 048
+[ 399]    0410: FE 06 31 00                           inc initial_T4
+[ 400]        :                                       
+[ 401]        :                                       ;Set LCD Cursor for value time 7
+[ 402]    0414: B4 CC                                 mov ah,0cCh
+[ 403]    0416: E8 27 FE                              call LCD_CUR
+[ 404]        :                                       
+[ 405]        :                                       ;Display Character on LCD
+[ 406]    0419: 8A 26 33 00                           mov ah,initial_T7
+[ 407]    041D: E8 3B FE                              call LCD_CHAR
+[ 408]        :                                       ;Set LCD cursoor for value time 5
+[ 409]    0420: B4 CA                                 mov ah, 0CAh
+[ 410]    0422: E8 1B FE                              call LCD_CUR
+[ 411]        :                                       ;Display Charaacter on LCD
+[ 412]    0425: 8A 26 32 00                           mov ah, initial_T5
+[ 413]    0429: E8 2F FE                              call LCD_CHAR
+[ 414]        :                                       ;Set LCD cursoor for value time 4
+[ 415]    042C: B4 C9                                 mov ah, 0C9h
+[ 416]    042E: E8 0F FE                              call LCD_CUR
+[ 417]        :                                       ;Display Charaacter on LCD
+[ 418]    0431: 8A 26 31 00                           mov ah, initial_T4
+[ 419]    0435: E8 23 FE                              call LCD_CHAR
+[ 420]        :                                       
+[ 421]    0438: 8A 3E 35 00                           mov bh, val5
+[ 422]    043C: 3A 3E 31 00                           cmp bh, initial_T4
+[ 423]    0440: 74 03                                 jz oneM
+[ 424]        :                                       
+[ 425]    0442: E9 86 00                              jmp endlabell
+[ 426]        :                                       
+[ 427]    0445:                                       oneM:
+[ 428]    0445: C6 06 31 00 30                        mov initial_T4, 048
+[ 429]    044A: FE 06 30 00                           inc initial_T2
+[ 430]        :                                       
+[ 431]        :                                       ;Set LCD Cursor for value time 7
+[ 432]    044E: B4 CC                                 mov ah,0cCh
+[ 433]    0450: E8 ED FD                              call LCD_CUR
+[ 434]        :                                       
+[ 435]        :                                       ;Display Character on LCD
+[ 436]    0453: 8A 26 33 00                           mov ah,initial_T7
+[ 437]    0457: E8 01 FE                              call LCD_CHAR
+[ 438]        :                                       ;Set LCD cursoor for value time 5
+[ 439]    045A: B4 CA                                 mov ah, 0CAh
+[ 440]    045C: E8 E1 FD                              call LCD_CUR
+[ 441]        :                                       ;Display Charaacter on LCD
+[ 442]    045F: 8A 26 32 00                           mov ah, initial_T5
+[ 443]    0463: E8 F5 FD                              call LCD_CHAR
+[ 444]        :                                       ;Set LCD cursoor for value time 4
+[ 445]    0466: B4 C9                                 mov ah, 0C9h
+[ 446]    0468: E8 D5 FD                              call LCD_CUR
+[ 447]        :                                       ;Display Charaacter on LCD
+[ 448]    046B: 8A 26 31 00                           mov ah, initial_T4
+[ 449]    046F: E8 E9 FD                              call LCD_CHAR
+[ 450]        :                                       ;Set LCD cursoor for value time 2
+[ 451]    0472: B4 C7                                 mov ah, 0C7h
+[ 452]    0474: E8 C9 FD                              call LCD_CUR
+[ 453]        :                                       ;Display Charaacter on LCD
+[ 454]    0477: 8A 26 30 00                           mov ah, initial_T2
+[ 455]    047B: E8 DD FD                              call LCD_CHAR
+[ 456]        :                                       
+[ 457]    047E: 3A 06 30 00                           cmp al, initial_T2
+[ 458]    0482: 74 02                                 jz tenM
+[ 459]        :                                       
+[ 460]    0484: EB 45                                 jmp endlabell
+[ 461]        :                                       
+[ 462]    0486:                                       tenM:
+[ 463]    0486: C6 06 30 00 30                        mov initial_T2, 048
+[ 464]    048B: FE 06 2F 00                           inc initial_T1
+[ 465]        :                                       
+[ 466]        :                                       ;Set LCD Cursor for value time 7
+[ 467]    048F: B4 CC                                 mov ah,0cCh
+[ 468]    0491: E8 AC FD                              call LCD_CUR
+[ 469]        :                                       
+[ 470]        :                                       ;Display Character on LCD
+[ 471]    0494: 8A 26 33 00                           mov ah,initial_T7
+[ 472]    0498: E8 C0 FD                              call LCD_CHAR
+[ 473]        :                                       ;Set LCD cursoor for value time 5
+[ 474]    049B: B4 CA                                 mov ah, 0CAh
+[ 475]    049D: E8 A0 FD                              call LCD_CUR
+[ 476]        :                                       ;Display Charaacter on LCD
+[ 477]    04A0: 8A 26 32 00                           mov ah, initial_T5
+[ 478]    04A4: E8 B4 FD                              call LCD_CHAR
+[ 479]        :                                       ;Set LCD cursoor for value time 4
+[ 480]    04A7: B4 C9                                 mov ah, 0C9h
+[ 481]    04A9: E8 94 FD                              call LCD_CUR
+[ 482]        :                                       ;Display Charaacter on LCD
+[ 483]    04AC: 8A 26 31 00                           mov ah, initial_T4
+[ 484]    04B0: E8 A8 FD                              call LCD_CHAR
+[ 485]        :                                       ;Set LCD cursoor for value time 2
+[ 486]    04B3: B4 C7                                 mov ah, 0C7h
+[ 487]    04B5: E8 88 FD                              call LCD_CUR
+[ 488]        :                                       ;Display Charaacter on LCD
+[ 489]    04B8: 8A 26 30 00                           mov ah, initial_T2
+[ 490]    04BC: E8 9C FD                              call LCD_CHAR
+[ 491]        :                                       ;Set LCD cursoor for value time 1
+[ 492]    04BF: B4 C6                                 mov ah, 0C6h
+[ 493]    04C1: E8 7C FD                              call LCD_CUR
+[ 494]        :                                       ;Display Charaacter on LCD
+[ 495]    04C4: 8A 26 2F 00                           mov ah, initial_T1
+[ 496]    04C8: E8 90 FD                              call LCD_CHAR
+[ 497]        :                                       
+[ 498]        :                                       
+[ 499]        :                                       
+[ 500]    04CB:                                       endlabell:
+[ 501]        :                                       ;         pop ax
+[ 502]    04CB: 5B                                    pop bx
+[ 503]        :                                       
+[ 504]        :                                       ;end of interrupt
+[ 505]    04CC: B0 20                                 mov al,20h
+[ 506]    04CE: E6 18                                 out 18h,al
+[ 507]        :                                       
+[ 508]    04D0: CF                                    iret
+[ 509]        :                                       
+[ 510]    04D1:                                       OUT_A:  ;sends data to output port and saves them in a variable
+[ 511]        :                                       ;input: AL
+[ 512]        :                                       ;output: PORTA_VAL
+[ 513]    04D1: E6 30                                 	OUT 30h,AL
+[ 514]    04D3: C3                                    	RET	
+[ 515]        :                                       
+[ 516]        :                                       
+[ 517]    04D4:                                       OUT_B:  ;output: PORTB_VAL	
+[ 518]    04D4: E6 32                                 	OUT 32h,AL
+[ 519]    04D6: C3                                    	RET
+[ 520]        :                                       
+[ 521]    04D7:                                       OUT_C:  ;input: AL
+[ 522]        :                                       ;output: PORTC_VAL	
+[ 523]    04D7: E6 34                                 	OUT 34h,AL
+[ 524]    04D9: C3                                    	RET
+[ 525]        :                                       	
+[ 526]        :                                       	
+[ 527]        :                                       	
+[ 528]    04DA:                                       EMERGENCY:
+[ 529]        :                                       
+[ 530]    04DA: E8 A1 FD                              CALL LCD_CLEAR
+[ 531]        :                                       
+[ 532]    04DD: B9 50 C3                              mov cx,50000
+[ 533]    04E0: E8 A1 FD                              CALL DELAY
+[ 534]        :                                       
+[ 535]        :                                       ;Set LCD Cursor for EMERGENCY
+[ 536]    04E3: B4 80                                 mov ah,80h
+[ 537]    04E5: E8 58 FD                              call LCD_CUR
+[ 538]        :                                       
+[ 539]        :                                       ;Display String on LCD
+[ 540]    04E8: BE 13 00                              lea SI,msg4
+[ 541]    04EB: E8 83 FD                              call LCD_STR
+[ 542]        :                                       
+[ 543]    04EE: B9 50 C3                              mov cx,50000
+[ 544]    04F1: E8 90 FD                              call delay
+[ 545]        :                                       
+[ 546]    04F4: EB E4                                 jmp emergency                   	
+[ 547]        :                                       
+[ 548]    04F6: B0 20                                 mov al,20H             ;EOI
+[ 549]    04F8: E6 18                                 OUT 18H,AL
+[ 550]        :                                       
+[ 551]        :                                       
+[ 552]        :                                       
+[ 553]    04FA: CF                                    iret
+[ 554]        :                                       
+[ 555]        :                                       	
+[ 556]    04FB:                                       LOWEST:
+[ 557]        :                                       
+[ 558]    04FB: E8 80 FD                              CALL LCD_CLEAR
+[ 559]        :                                       
+[ 560]    04FE: B9 50 C3                              mov cx,50000
+[ 561]    0501: E8 80 FD                              CALL DELAY
+[ 562]        :                                       
+[ 563]        :                                       ;Set LCD Cursor for EMERGENCY
+[ 564]    0504: B4 80                                 mov ah,80h
+[ 565]    0506: E8 37 FD                              call LCD_CUR
+[ 566]        :                                       
+[ 567]        :                                       ;Display String on LCD
+[ 568]    0509: BE 1D 00                              lea SI,msg5
+[ 569]    050C: E8 62 FD                              call LCD_STR
+[ 570]        :                                       
+[ 571]    050F: B9 50 C3                              mov cx,50000
+[ 572]    0512: E8 6F FD                              call delay
+[ 573]        :                                       
+[ 574]        :                                       
+[ 575]    0515: EB 05                                 jmp start                	
+[ 576]        :                                       
+[ 577]    0517: B0 20                                 mov al,20H             ;EOI
+[ 578]    0519: E6 18                                 OUT 18H,AL
+[ 579]        :                                       
+[ 580]        :                                       
+[ 581]        :                                       
+[ 582]    051B: C3                                    ret
+[ 583]        :                                       
+[ 584]    051C:                                       start:  ;Initialise Data Segment
+[ 585]    051C: B8 20 00                              mov ax,@data
+[ 586]    051F: 8E D8                                 mov ds,ax
+[ 587]        :                                       
+[ 588]        :                                       ;Initialise Extra Segment
+[ 589]    0521: B8 00 00                              mov ax,00h
+[ 590]    0524: 8E C0                                 mov es,AX
+[ 591]        :                                       
+[ 592]        :                                       
+[ 593]        :                                       ;Initialise 8255
+[ 594]    0526: B0 80                                 mov al,80h          ;Move I/O command to al register
+[ 595]    0528: E6 36                                 out 36h,al          ;send command to Control Word
+[ 596]        :                                       
+[ 597]        :                                       
+[ 598]        :                                       ;Initialise 8259
+[ 599]    052A: B0 13                                 mov al,13H             ;ICW1 = 00010011 = 13H
+[ 600]    052C: E6 18                                 OUT 18H,AL
+[ 601]        :                                       
+[ 602]    052E: B0 30                                 mov al,30H             ;ICW2 = 00110000 = 30H  vector no. 48
+[ 603]    0530: E6 1A                                 OUT 1AH,AL
+[ 604]        :                                       
+[ 605]    0532: B0 01                                 mov al,01H             ;ICW4 = 00001001 = 9H
+[ 606]    0534: E6 1A                                 OUT 1AH,AL
+[ 607]        :                                       
+[ 608]        :                                       ; Initialise 8253
+[ 609]    0536: B0 36                                 mov al,36H          ;Command word sent to 8253
+[ 610]    0538: E6 2E                                 out 2EH,al
+[ 611]        :                                       
+[ 612]        :                                       
+[ 613]    053A: B0 50                                 mov al,50H
+[ 614]    053C: E6 28                                 out 28H,al
+[ 615]        :                                       
+[ 616]    053E: B0 C3                                 mov al,0c3H
+[ 617]    0540: E6 28                                 out 28H,al
+[ 618]        :                                       
+[ 619]        :                                       
+[ 620]        :                                       ;Interrupt Vector table initialization
+[ 621]        :                                       
+[ 622]        :                                       ;Interrupt 1 - TYPE A
+[ 623]        :                                       
+[ 624]    0542: B8 B2 00                              lea ax,TypeA
+[ 625]    0545: BF C0 00                              mov di,00c0h
+[ 626]    0548: AB                                    stosw
+[ 627]        :                                       
+[ 628]    0549: 8C C8                                 mov ax,cs
+[ 629]    054B: AB                                    stosw
+[ 630]        :                                       
+[ 631]        :                                       
+[ 632]        :                                       ;Interrupt 2 - TYPE B
+[ 633]        :                                       
+[ 634]    054C: B8 16 01                              lea ax,TypeB
+[ 635]    054F: BF C4 00                              mov di,00c4h
+[ 636]    0552: AB                                    stosw
+[ 637]        :                                       
+[ 638]    0553: 8C C8                                 mov ax,cs
+[ 639]    0555: AB                                    stosw
+[ 640]        :                                       
+[ 641]        :                                       
+[ 642]        :                                       ;Interrupt 3 - TIME
+[ 643]    0556: B8 83 01                              lea ax,TimeS
+[ 644]    0559: BF C8 00                              mov di,00C8h
+[ 645]    055C: AB                                    stosw
+[ 646]        :                                       
+[ 647]    055D: 8C C8                                 mov ax,cs
+[ 648]    055F: AB                                    stosw
+[ 649]        :                                       
+[ 650]        :                                       
+[ 651]        :                                       
+[ 652]        :                                       ;Interrupt 4 - START CONVEYOR
+[ 653]    0560: B8 49 00                              lea ax,Motor_Conv
+[ 654]    0563: BF CC 00                              mov di,00CCh
+[ 655]    0566: AB                                    stosw
+[ 656]        :                                       
+[ 657]    0567: 8C C8                                 mov ax,cs
+[ 658]    0569: AB                                    stosw
+[ 659]        :                                       
+[ 660]        :                                       ;Interrupt 4 - EMERGENCY
+[ 661]    056A: B8 9A 02                              lea ax,EMERGENCY
+[ 662]    056D: BF 08 00                              mov di,8h
+[ 663]    0570: AB                                    stosw
+[ 664]        :                                       
+[ 665]    0571: 8C C8                                 mov ax,cs
+[ 666]    0573: AB                                    stosw
+[ 667]        :                                       
+[ 668]    0574: FB                                    STI
+[ 669]        :                                       
+[ 670]        :                                       
+[ 671]        :                                       
+[ 672]        :                                       ;Initialization LCD
+[ 673]        :                                       
+[ 674]        :                                       ;delay 20msafter VCC rises to 4.5V
+[ 675]    0575: B9 E8 03                              	MOV CX,1000
+[ 676]    0578: E8 09 FD                              	CALL DELAY
+[ 677]        :                                       	
+[ 678]        :                                       ;Send function set command to LCD: 2 Line, 8-bit, 5x7 dots
+[ 679]    057B: B4 38                                 	MOV AH,38H
+[ 680]    057D: E8 C5 FC                              	CALL LCD_CMD
+[ 681]        :                                       	
+[ 682]        :                                       ;Send display ON/OFF control command to LCD: Display ON, Cursor off, Blink off
+[ 683]    0580: B4 0C                                 	MOV AH,0CH
+[ 684]    0582: E8 C0 FC                              	CALL LCD_CMD
+[ 685]        :                                       	
+[ 686]        :                                       ;Send clear display command to LCD: Clear display, Returns cursor to home position (address 0)            	
+[ 687]    0585: B4 01                                 	MOV AH,01H
+[ 688]    0587: E8 BB FC                              	CALL LCD_CMD
+[ 689]        :                                       	
+[ 690]        :                                       ;Send entry mode set command to LCD: Auto Increment bit, No display shift             	
+[ 691]    058A: B4 06                                 	MOV AH,06H
+[ 692]    058C: E8 B6 FC                              	CALL LCD_CMD
+[ 693]        :                                       
+[ 694]        :                                       
+[ 695]        :                                       
+[ 696]        :                                       
+[ 697]        :                                       ;Set LCD Cursor for string Qty
+[ 698]    058F: B4 8A                                 mov ah,8Ah
+[ 699]    0591: E8 AC FC                              call LCD_CUR
+[ 700]        :                                       
+[ 701]        :                                       ;Display string on LCD
+[ 702]    0594: BE 00 00                              lea SI,msg1
+[ 703]    0597: E8 D7 FC                              call LCD_STR
+[ 704]        :                                       
+[ 705]        :                                       ;Set LCD Cursor for string Tm
+[ 706]    059A: B4 C0                                 mov ah,0c0h
+[ 707]    059C: E8 A1 FC                              call LCD_CUR
+[ 708]        :                                       
+[ 709]        :                                       ;Display string on LCD
+[ 710]    059F: BE 06 00                              lea SI,msg2
+[ 711]    05A2: E8 CC FC                              call LCD_STR
+[ 712]        :                                       
+[ 713]        :                                       ;Set LCD Cursor for string Typ
+[ 714]    05A5: B4 80                                 mov ah,80h
+[ 715]    05A7: E8 96 FC                              call LCD_CUR
+[ 716]        :                                       
+[ 717]        :                                       ;Display string on LCD
+[ 718]    05AA: BE 0D 00                              lea SI,msg3
+[ 719]    05AD: E8 C1 FC                              call LCD_STR
+[ 720]        :                                       
+[ 721]        :                                       ;Set LCD Cursor for value Typ
+[ 722]    05B0: B4 84                                 mov ah,84h
+[ 723]    05B2: E8 8B FC                              call LCD_CUR
+[ 724]        :                                       
+[ 725]        :                                       ;Display Character on LCD
+[ 726]    05B5: 8A 26 2A 00                           mov ah,initial
+[ 727]    05B9: E8 9F FC                              call LCD_CHAR
+[ 728]        :                                       
+[ 729]        :                                       
+[ 730]        :                                       ;Set LCD Cursor for value time 1
+[ 731]    05BC: B4 C6                                 mov ah,0c6h
+[ 732]    05BE: E8 7F FC                              call LCD_CUR
+[ 733]        :                                       
+[ 734]        :                                       ;Display Character on LCD
+[ 735]    05C1: 8A 26 2A 00                           mov ah,initial
+[ 736]    05C5: E8 93 FC                              call LCD_CHAR
+[ 737]        :                                       
+[ 738]        :                                       ;Set LCD Cursor for value time 2
+[ 739]    05C8: B4 C7                                 mov ah,0c7h
+[ 740]    05CA: E8 73 FC                              call LCD_CUR
+[ 741]        :                                       
+[ 742]        :                                       ;Display Character on LCD
+[ 743]    05CD: 8A 26 2A 00                           mov ah,initial
+[ 744]    05D1: E8 87 FC                              call LCD_CHAR
+[ 745]        :                                       
+[ 746]        :                                       ;Set LCD Cursor for value time 3
+[ 747]    05D4: B4 C8                                 mov ah,0c8h
+[ 748]    05D6: E8 67 FC                              call LCD_CUR
+[ 749]        :                                       
+[ 750]        :                                       ;Display Character on LCD
+[ 751]    05D9: B4 3A                                 mov ah,058
+[ 752]    05DB: E8 7D FC                              call LCD_CHAR
+[ 753]        :                                       
+[ 754]        :                                       ;Set LCD Cursor for value time 4
+[ 755]    05DE: B4 C9                                 mov ah,0c9h
+[ 756]    05E0: E8 5D FC                              call LCD_CUR
+[ 757]        :                                       
+[ 758]        :                                       ;Display Character on LCD
+[ 759]    05E3: 8A 26 2A 00                           mov ah,initial
+[ 760]    05E7: E8 71 FC                              call LCD_CHAR
+[ 761]        :                                       
+[ 762]        :                                       ;Set LCD Cursor for value time 5
+[ 763]    05EA: B4 CA                                 mov ah,0cAh
+[ 764]    05EC: E8 51 FC                              call LCD_CUR
+[ 765]        :                                       
+[ 766]        :                                       ;Display Character on LCD
+[ 767]    05EF: 8A 26 2A 00                           mov ah,initial
+[ 768]    05F3: E8 65 FC                              call LCD_CHAR
+[ 769]        :                                       
+[ 770]        :                                       ;Set LCD Cursor for value time 6
+[ 771]    05F6: B4 CB                                 mov ah,0cBh
+[ 772]    05F8: E8 45 FC                              call LCD_CUR
+[ 773]        :                                       
+[ 774]        :                                       ;Display Character on LCD
+[ 775]    05FB: B4 3A                                 mov ah,058
+[ 776]    05FD: E8 5B FC                              call LCD_CHAR
+[ 777]        :                                       
+[ 778]        :                                       ;Set LCD Cursor for value time 7
+[ 779]    0600: B4 CC                                 mov ah,0cCh
+[ 780]    0602: E8 3B FC                              call LCD_CUR
+[ 781]        :                                       
+[ 782]        :                                       ;Display Character on LCD
+[ 783]    0605: 8A 26 2F 00                           mov ah,initial_T1
+[ 784]    0609: E8 4F FC                              call LCD_CHAR
+[ 785]        :                                       
+[ 786]        :                                       ;Set LCD Cursor for value Qty 1
+[ 787]    060C: B4 8E                                 mov ah,8Eh
+[ 788]    060E: E8 2F FC                              call LCD_CUR
+[ 789]        :                                       
+[ 790]        :                                       ;Display Character on LCD
+[ 791]    0611: 8A 26 2B 00                           mov ah,initial_Q1
+[ 792]    0615: E8 43 FC                              call LCD_CHAR
+[ 793]        :                                       
+[ 794]        :                                       ;Set LCD Cursor for value Qty 2
+[ 795]    0618: B4 8F                                 mov ah,8Fh
+[ 796]    061A: E8 23 FC                              call LCD_CUR
+[ 797]        :                                       
+[ 798]        :                                       ;Display Character on LCD
+[ 799]    061D: 8A 26 2C 00                           mov ah,initial_Q2
+[ 800]    0621: E8 37 FC                              call LCD_CHAR
+[ 801]        :                                       
+[ 802]        :                                       
+[ 803]        :                                       
+[ 804]        :                                       
+[ 805]        :                                       
+[ 806]        :                                       
+[ 807]        :                                       
+[ 808]    0624: F4                                    HLT
+[ 809]        :                                       
+[ 810]        :                                       
+[ 811]        :                                       end start
+[ 812]        :                                       
+[ 813]        :                                       
+[ 814]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: 25      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 05      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 01      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 00      -   SP - stack pointer (l.byte)
+0011: 01      -   SP - stack pointer (h.byte)
+0012: F5      -   check sum (l.byte)
+0013: 35      -   check sum (h.byte)
+0014: DC      -   IP - instruction pointer (l.byte)
+0015: 02      -   IP - instruction pointer (h.byte)
+0016: 24      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E: DD      -   relocation table - offset inside segment (l.byte)
+001F: 02      -   relocation table - offset inside segment (h.byte)
+0020: 24      -   relocation table - segment anchor (l.byte)
+0021: 00      -   relocation table - segment anchor (h.byte)
+0022 to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================
